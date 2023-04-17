@@ -60,15 +60,19 @@ impl VringConfigData {
 }
 
 /// Memory region configuration data.
+/// 最终会被转换为：VhostUserMemoryRegionInfo -> vhost_memory_region
 #[derive(Default, Clone, Copy)]
 pub struct VhostUserMemoryRegionInfo {
     /// Guest physical address of the memory region.
+    /// 内存区域客户物理地址（GPA）
     pub guest_phys_addr: u64,
     /// Size of the memory region.
     pub memory_size: u64,
     /// Virtual address in the current process.
+    /// Dragonball 的虚拟内存地址（HVA）
     pub userspace_addr: u64,
     /// Optional offset where region starts in the mapped memory.
+    /// mmap 到底是干啥的？？
     pub mmap_offset: u64,
     /// Optional file descriptor for mmap.
     pub mmap_handle: RawFd,

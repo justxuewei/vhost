@@ -240,9 +240,13 @@ pub struct vhost_memory_region {
 #[repr(C)]
 #[derive(Debug, Default, Clone)]
 pub struct vhost_memory {
+    // __u32 类型
     pub nregions: raw::c_uint,
+    // __u32 类型
     pub padding: raw::c_uint,
+    // 用于对应 flexible array member（动态数组）
     pub regions: __IncompleteArrayField<vhost_memory_region>,
+    // 确保边界对齐
     __force_alignment: [u64; 0],
 }
 
@@ -278,13 +282,16 @@ pub struct vhost_vdpa_iova_range {
 
 /// Helper to support vhost::set_mem_table()
 pub struct VhostMemory {
+    // vhost_memory 就是用 Rust 仿写的 c 的 vhost_memory
     buf: Vec<vhost_memory>,
 }
 
 impl VhostMemory {
     // Limit number of regions to u16 to simplify error handling
     pub fn new(entries: u16) -> Self {
+        // size = sizeof(vhost_memory_region) * entries
         let size = std::mem::size_of::<vhost_memory_region>() * entries as usize;
+        // count = sizeof(vhost_memory_region) * entries + 2 * sizeof(vhost_memory) - 1 / sizeof(vhost_memory)
         let count = (size + 2 * std::mem::size_of::<vhost_memory>() - 1)
             / std::mem::size_of::<vhost_memory>();
         let mut buf: Vec<vhost_memory> = vec![Default::default(); count];
@@ -314,7 +321,9 @@ impl VhostMemory {
             return Err(Error::InvalidGuestMemory);
         }
         // Safe because we have allocated enough space nregions and checked the index.
+        // 从 self.buf[0].regions 中取出 0..index+1 长度的 slice
         let regions = unsafe { self.buf[0].regions.as_mut_slice(index as usize + 1) };
+        // 把 region 复制给 regions[index]
         regions[index as usize] = *region;
         Ok(())
     }

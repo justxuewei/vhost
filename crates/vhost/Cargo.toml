@@ -14,7 +14,7 @@ edition = "2018"
 all-features = true
 
 [features]
-default = []
+default = ["vhost-net"]
 vhost-vsock = []
 vhost-kern = []
 vhost-vdpa = ["vhost-kern"]

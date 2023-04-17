@@ -133,6 +133,9 @@ impl<T: VhostKernBackend> VhostBackend for T {
     }
 
     /// Set the guest memory mappings for vhost to use.
+    /// 这个方法传入了一个 VhostUserMemoryRegionInfo 的数组，这个方法会创建一个
+    /// vhost_memory 结构体，并将 regions 保存到该结构体上，最后使用 ioctl 调用
+    /// VHOST_SET_MEM_TABLE 设置共享内存给 vhost。
     fn set_mem_table(&self, regions: &[VhostUserMemoryRegionInfo]) -> Result<()> {
         if regions.is_empty() || regions.len() > VHOST_MAX_MEMORY_REGIONS {
             return Err(Error::InvalidGuestMemory);
@@ -140,6 +143,7 @@ impl<T: VhostKernBackend> VhostBackend for T {
 
         let mut vhost_memory = VhostMemory::new(regions.len() as u16);
         for (index, region) in regions.iter().enumerate() {
+            // 在这句函数中实现了 VhostUserMemoryRegionInfo -> vhost_memory_region
             vhost_memory.set_region(
                 index as u32,
                 &vhost_memory_region {
@@ -173,6 +177,7 @@ impl<T: VhostKernBackend> VhostBackend for T {
     }
 
     /// Specify an eventfd file descriptor to signal on log write.
+    /// 我猜测说 log 写入了之后通过 eventfd 通知 dragonball 的
     fn set_log_fd(&self, fd: RawFd) -> Result<()> {
         // This ioctl is called on a valid vhost fd and has its return value checked.
         let val: i32 = fd;
@@ -185,6 +190,7 @@ impl<T: VhostKernBackend> VhostBackend for T {
     /// # Arguments
     /// * `queue_index` - Index of the queue to set descriptor count for.
     /// * `num` - Number of descriptors in the queue.
+    /// 设置 vring 的数量
     fn set_vring_num(&self, queue_index: usize, num: u16) -> Result<()> {
         let vring_state = vhost_vring_state {
             index: queue_index as u32,
